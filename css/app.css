@@ -249,6 +249,7 @@ table.grid td.name { font-weight: 550; max-width: 220px; overflow: hidden; text-
 .pill.DMR { color: var(--dmr); background: var(--dmr-bg); }
 .pill.P25 { color: var(--dmr); background: var(--dmr-bg); outline: 1px solid var(--dmr); outline-offset: -1px; }
 .pill.NXDN { color: var(--dmr); background: var(--dmr-bg); outline: 1px dashed var(--dmr); outline-offset: -1px; }
+.pill.M17 { color: var(--dmr); background: var(--dmr-bg); outline: 1px dotted var(--dmr); outline-offset: -1px; }
 .pill.AM { color: var(--am); background: var(--am-bg); }
 .pill.USB, .pill.LSB { color: var(--ssb); background: var(--ssb-bg); }
 .tag { display: inline-block; padding: 0 6px; margin-right: 4px; border-radius: 4px; font-size: 11px;

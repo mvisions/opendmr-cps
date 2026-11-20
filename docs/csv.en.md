@@ -50,7 +50,7 @@ The first 28 are the OpenGD77 ones, the last 3 OpenDMR's.
 | --- | --- |
 | Channel Number | 1 – 1024 (Replace only) |
 | Channel Name | 16 bytes at most (a Chinese character takes 2); characters without a GB2312 code show as ? |
-| Channel Type | `Analogue` (FM), `Digital` (DMR); OpenDMR also `AM`, `USB`, `LSB`, `P25`, `NXDN` |
+| Channel Type | `Analogue` (FM), `Digital` (DMR); OpenDMR also `AM`, `USB`, `LSB`, `P25`, `NXDN`, `M17` |
 | Rx Frequency | MHz, `439.46250` |
 | Tx Frequency | MHz; empty: the Rx frequency |
 | Bandwidth (kHz) | `12.5` or `25` (analogue) |
@@ -74,6 +74,7 @@ The first 28 are the OpenGD77 ones, the last 3 OpenDMR's.
 | Step (kHz) | **OpenDMR**: the step, 2.5 / 5 / 6.25 / 10 / 12.5 / 25 / 30 / 50 |
 | Force DMO | **OpenDMR**: DMR forced direct mode, `Yes` / `No` |
 | RAN | **OpenDMR**: NXDN's RAN, 0 - 63, empty: 1 (0: receive any RAN) |
+| CAN | **OpenDMR**: M17's channel access number, 0 - 15, empty: 0 (transmitted; receive: not filtered) |
 
 `Yes / No` columns also take `True / False`, `1 / 0`.
 

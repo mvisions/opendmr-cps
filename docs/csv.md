@@ -45,7 +45,7 @@
 | --- | --- |
 | Channel Number | 1 – 1024（只在「替换」时用） |
 | Channel Name | 最多 16 字节（汉字算 2 个），GB2312 里没有的字显示成 ? |
-| Channel Type | `Analogue`（FM）、`Digital`（DMR）；OpenDMR 另有 `AM`、`USB`、`LSB`、`P25`、`NXDN` |
+| Channel Type | `Analogue`（FM）、`Digital`（DMR）；OpenDMR 另有 `AM`、`USB`、`LSB`、`P25`、`NXDN`、`M17` |
 | Rx Frequency | MHz，如 `439.46250` |
 | Tx Frequency | MHz；空 = 和接收一样 |
 | Bandwidth (kHz) | `12.5` 或 `25`（模拟信道） |
@@ -69,6 +69,7 @@
 | Step (kHz) | **OpenDMR**：步进，2.5 / 5 / 6.25 / 10 / 12.5 / 25 / 30 / 50 |
 | Force DMO | **OpenDMR**：DMR 强制直通，`Yes` / `No` |
 | RAN | **OpenDMR**：NXDN 的 RAN，0 - 63，空 = 1（0：接收任意 RAN） |
+| CAN | **OpenDMR**：M17 的信道接入号，0 - 15，空 = 0（发射用；接收不过滤） |
 
 `Yes / No` 的列也接受 `True / False`、`1 / 0`。
 

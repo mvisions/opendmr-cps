@@ -2,7 +2,7 @@
 
 import {t, applyTexts, toggleLanguage} from './i18n.js';
 import {icon, applyIcons} from './icons.js';
-import {Codeplug, MODES, P25_NAC_ANY, NXDN_RAN_MAX, CALL_TYPES, POWER_LEVELS, STEPS_HZ, toneChoices, frequencyValid, LOCKOUTS_MAX,
+import {Codeplug, MODES, P25_NAC_ANY, NXDN_RAN_MAX, M17_CAN_MAX, CALL_TYPES, POWER_LEVELS, STEPS_HZ, toneChoices, frequencyValid, LOCKOUTS_MAX,
     TA_TX, APRS_CONFIGS_MAX, newAprsConfig} from './codeplug/codeplug.js';
 import * as L from './codeplug/layout.js';
 import {RadioLink} from './radio/link.js';
@@ -273,8 +273,9 @@ function channelEditor(ch, opts) {
     function draw() {
         const p25 = ch.mode === 'P25';
         const nxdn = ch.mode === 'NXDN';
+        const m17 = ch.mode === 'M17';
         const dmr = ch.mode === 'DMR';
-        const analog = !dmr && !p25 && !nxdn;
+        const analog = !dmr && !p25 && !nxdn && !m17;
         const set = (k, redraw = false) => (v) => {
             ch[k] = v;
             opts.changed?.();
@@ -303,20 +304,23 @@ function channelEditor(ch, opts) {
                     (v) => set('wide')(v === '1'))) : null,
                 field(t('squelch'), select([[0, t('fromRadio')], ...Array.from({length: 21}, (_, i) => [i + 1, (i * 5) + '%'])],
                     ch.squelch, (v) => set('squelch')(+v))),
-            )) : el('div', {class: 'section'}, el('h4', {}, t(p25 ? 'secP25' : nxdn ? 'secNxdn' : 'secDmr')),
+            )) : el('div', {class: 'section'}, el('h4', {}, t(p25 ? 'secP25' : nxdn ? 'secNxdn' : m17 ? 'secM17' : 'secDmr')),
                 el('div', {class: 'fields'},
+                m17 ? field(t('can'), select([...Array(M17_CAN_MAX + 1).keys()].map((i) => [i, i]), ch.can,
+                    (v) => set('can')(+v)), {help: 'helpCan'}) : null,
+                m17 ? field(t('m17Dst'), el('span', {class: 'dim'}, t('m17DstAll')), {help: 'helpM17Dst'}) : null,
                 nxdn ? field(t('ran'), select([...Array(NXDN_RAN_MAX + 1).keys()].map((i) => [i, i === 0 ? `0 (${t('ranAny')})` : i]),
                     ch.ran, (v) => set('ran')(+v)), {help: 'helpRan'}) : null,
-                nxdn ? null : p25 ? field(t('nac'), valueInput(ch.nac, set('nac'), (s) => {
+                (nxdn || m17) ? null : p25 ? field(t('nac'), valueInput(ch.nac, set('nac'), (s) => {
                     const hex = s.trim().split(/\s/)[0];
                     const v = /^[0-9a-fA-F]{1,3}$/.test(hex) ? parseInt(hex, 16) : NaN;
                     return Number.isNaN(v) ? null : v;
                 }, (v) => v.toString(16).toUpperCase().padStart(3, '0') + (v === P25_NAC_ANY ? ' (' + t('nacAny') + ')' : '')))
                     : field(t('colourCode'), select([...Array(16).keys()].map((i) => [i, i]), ch.colourCode, (v) => set('colourCode')(+v))),
                 !dmr ? null : field(t('timeslot'), select([[1, 'TS1'], [2, 'TS2']], ch.timeslot, (v) => set('timeslot')(+v))),
-                field(t('contact'), select([[0, t('none')], ...codeplug.contacts.map((c) => [c.index, `${c.name} · ${c.id}`])],
+                m17 ? null : field(t('contact'), select([[0, t('none')], ...codeplug.contacts.map((c) => [c.index, `${c.name} · ${c.id}`])],
                     ch.contact, (v) => set('contact')(+v)), {wide: true}),
-                field(t('rxGroup'), select([[0, t('none')], ...codeplug.rxGroups.map((g) => [g.number, g.name])],
+                m17 ? null : field(t('rxGroup'), select([[0, t('none')], ...codeplug.rxGroups.map((g) => [g.number, g.name])],
                     ch.rxGroup, (v) => set('rxGroup')(+v)), {wide: true}),
                 !dmr ? null : field(t('channelDmrId'), valueInput(ch.dmrId || '', (v) => set('dmrId')(v || 0),
                     (s) => (s === '' ? 0 : intRange(1, 16777215)(s)), (v) => v || ''), {wide: true}),
@@ -450,6 +454,9 @@ function viewChannels(main) {
         }
         if (ch.mode === 'NXDN') {
             return 'RAN' + ch.ran;
+        }
+        if (ch.mode === 'M17') {
+            return 'CAN' + ch.can;
         }
         return [ch.rxTone, ch.txTone].some((x) => x) ? `${ch.rxTone || '—'} / ${ch.txTone || '—'}` : '';
     }

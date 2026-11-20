@@ -9,14 +9,16 @@ import {RadioSettings} from './settings.js';
 import * as SAT from './satellites.js';
 import * as TH from './themes.js';
 
-export const MODES = ['FM', 'DMR', 'P25', 'NXDN', 'AM', 'USB', 'LSB'];
-export const DIGITAL_MODES = ['DMR', 'P25', 'NXDN'];
-const OPENDMR_MODE_TAG = 0xA0;       // codeplug.c: byte 37, 0xA1 AM, 0xA2 USB, 0xA3 LSB; 0xA4 P25, 0xA5 NXDN (byte 24 digital)
+export const MODES = ['FM', 'DMR', 'P25', 'NXDN', 'M17', 'AM', 'USB', 'LSB'];
+export const DIGITAL_MODES = ['DMR', 'P25', 'NXDN', 'M17'];
+const OPENDMR_MODE_TAG = 0xA0;       // codeplug.c: byte 37, 0xA1 AM, 0xA2 USB, 0xA3 LSB; 0xA4 P25, 0xA5 NXDN, 0xA6 M17 (byte 24 digital)
 const OPENDMR_MODE_P25 = 0xA4;
 const OPENDMR_MODE_NXDN = 0xA5;
+const OPENDMR_MODE_M17 = 0xA6;
 // NXDN's RAN (codeplug.h codeplug_nxdn_ran()): 0 - 63 in byte 44 (DMR's colour code); out of range: 1. 0 receives any
 export const NXDN_RAN_DEFAULT = 1;
 export const NXDN_RAN_MAX = 63;
+export const M17_CAN_MAX = 15; // M17's channel access number, byte 44 (codeplug.h codeplug_m17_can())
 // The radio's NXDN ID (OpenDMR services/nxdn_id.c, a custom data block "DT" 6): version 1, 0, the ID little endian;
 // 0 or no block: the DMR ID
 export const NXDN_ID_BLOCK_TYPE = 0x44540006;
@@ -333,7 +335,8 @@ export class Codeplug {
         const raw = img.slice(at, at + L.CHANNEL_SIZE);
         let mode = 'FM';
         if (raw[24] !== 0) {
-            mode = (raw[37] === OPENDMR_MODE_P25) ? 'P25' : (raw[37] === OPENDMR_MODE_NXDN) ? 'NXDN' : 'DMR';
+            mode = (raw[37] === OPENDMR_MODE_P25) ? 'P25' : (raw[37] === OPENDMR_MODE_NXDN) ? 'NXDN' :
+                (raw[37] === OPENDMR_MODE_M17) ? 'M17' : 'DMR';
         } else {
             const index = raw[37] ^ OPENDMR_MODE_TAG;
             mode = ['FM', 'AM', 'USB', 'LSB'][index] ?? 'FM';
@@ -349,8 +352,9 @@ export class Codeplug {
             txTone: toneFromCodeplug(u16(raw, 34)),
             power: raw[25],          // 0: the radio's setting, 1 - 10: POWER_LEVELS[power - 1]
             tot: raw[27] * 15,       // s, 0: off
-            colourCode: (mode === 'P25' || mode === 'NXDN') ? 1 : (raw[44] & 0x0F),
+            colourCode: (mode === 'P25' || mode === 'NXDN' || mode === 'M17') ? 1 : (raw[44] & 0x0F),
             ran: (raw[44] <= NXDN_RAN_MAX) ? raw[44] : NXDN_RAN_DEFAULT,
+            can: (raw[44] <= M17_CAN_MAX) ? raw[44] : 0,
             nac: ((raw[42] & 0xF0) === 0xA0) ? (((raw[42] & 0x0F) << 8) | raw[44]) : P25_NAC_DEFAULT,
             timeslot: (raw[49] & FLAG2_TS2) ? 2 : 1,
             contact: u16(raw, 46),   // contact index, 0: none
@@ -383,6 +387,7 @@ export class Codeplug {
         setU32(raw, 20, toBcd(Math.round(ch.tx / 10)));
         raw[24] = DIGITAL_MODES.includes(ch.mode) ? 1 : 0;
         raw[37] = (ch.mode === 'P25') ? OPENDMR_MODE_P25 : (ch.mode === 'NXDN') ? OPENDMR_MODE_NXDN :
+            (ch.mode === 'M17') ? OPENDMR_MODE_M17 :
             (ANALOG_MODE_INDEX[ch.mode] ? (OPENDMR_MODE_TAG | ANALOG_MODE_INDEX[ch.mode]) : 0);
         setU16(raw, 32, toneToCodeplug(ch.rxTone));
         setU16(raw, 34, toneToCodeplug(ch.txTone));
@@ -393,6 +398,8 @@ export class Codeplug {
             raw[42] = 0xA0 | ((ch.nac >> 8) & 0x0F);
         } else if (ch.mode === 'NXDN') {
             raw[44] = Math.min(Math.max(ch.ran, 0), NXDN_RAN_MAX);
+        } else if (ch.mode === 'M17') {
+            raw[44] = Math.min(Math.max(ch.can ?? 0, 0), M17_CAN_MAX);
         } else {
             raw[44] = ch.colourCode & 0x0F;
         }
@@ -444,7 +451,7 @@ export class Codeplug {
     static newChannel(number) {
         return {
             number, name: 'CH' + number, mode: 'FM', rx: 145500000, tx: 145500000, rxTone: '', txTone: '',
-            power: 0, tot: 0, colourCode: 1, nac: P25_NAC_DEFAULT, ran: NXDN_RAN_DEFAULT, timeslot: 1, contact: 0, rxGroup: 0, aprs: 0, wide: true,
+            power: 0, tot: 0, colourCode: 1, nac: P25_NAC_DEFAULT, ran: NXDN_RAN_DEFAULT, can: 0, timeslot: 1, contact: 0, rxGroup: 0, aprs: 0, wide: true,
             rxOnly: false, zoneSkip: false, allSkip: false, vox: false, squelch: 0, beep: true, eco: true,
             forceDmo: false, dmrId: 0, step: 12500, taTx1: 0, taTx2: 0, latitude: null, longitude: null,
             useLocation: false, raw: null,

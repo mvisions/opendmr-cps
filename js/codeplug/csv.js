@@ -1,7 +1,7 @@
 // The codeplug as CSV files, in the OpenGD77 CPS's format (its File > CSV export: Channels.csv, Zones.csv,
 // Contacts.csv, TG_Lists.csv, APRS.csv; the same headers and values), so its files import here as they are, and a list
 // from another CPS can be edited into them by hand or in a spreadsheet. What OpenDMR has more is in columns added at
-// the end of Channels.csv (NAC, Step, Force DMO) and in more Channel Type values (AM, USB, LSB, P25).
+// the end of Channels.csv (NAC, Step, Force DMO, RAN, CAN) and in more Channel Type values (AM, USB, LSB, P25, NXDN, M17).
 // docs/csv.md describes the files.
 //
 // Import: the files given (any of them) are told apart by their header; columns are found by name (any case and
@@ -12,7 +12,7 @@
 //     zones and APRS configurations with a name the codeplug has replace that one, the others are added
 // With an error nothing is changed.
 
-import {MODES, POWER_LEVELS, STEPS_HZ, P25_NAC_DEFAULT, NXDN_RAN_DEFAULT, NXDN_RAN_MAX, TA_TX, CALL_TYPES,
+import {MODES, POWER_LEVELS, STEPS_HZ, P25_NAC_DEFAULT, NXDN_RAN_DEFAULT, NXDN_RAN_MAX, M17_CAN_MAX, TA_TX, CALL_TYPES,
     APRS_CONFIGS_MAX, newAprsConfig,
     toneFromCodeplug, toneToCodeplug, frequencyValid} from './codeplug.js';
 import * as L from './layout.js';
@@ -133,7 +133,7 @@ const CHANNEL_HEADER = ['Channel Number', 'Channel Name', 'Channel Type', 'Rx Fr
     'Bandwidth (kHz)', 'Colour Code', 'Timeslot', 'Contact', 'TG List', 'DMR ID', 'TS1_TA_Tx', 'TS2_TA_Tx ID',
     'RX Tone', 'TX Tone', 'Squelch', 'Power', 'Rx Only', 'Zone Skip', 'All Skip', 'TOT', 'VOX', 'No Beep', 'No Eco',
     'APRS', 'Latitude', 'Longitude', 'Use Location',
-    'NAC', 'Step (kHz)', 'Force DMO', 'RAN']; // OpenDMR's
+    'NAC', 'Step (kHz)', 'Force DMO', 'RAN', 'CAN']; // OpenDMR's
 
 function squelchText(sql) {
     if (sql === 0) {
@@ -168,6 +168,7 @@ function channelRow(ch, cp) {
         ch.mode === 'P25' ? ch.nac.toString(16).toUpperCase().padStart(3, '0') : '',
         String(ch.step / 1000), dmr ? yesNo(ch.forceDmo) : '',
         ch.mode === 'NXDN' ? ch.ran : '',
+        ch.mode === 'M17' ? ch.can : '',
     ];
 }
 
@@ -568,7 +569,7 @@ export function importCsv(cp, files, {replace = false, newChannel}) {
             const type = r.cell('Channel Type', 'Mode').toUpperCase();
             ch.mode = ({ANALOGUE: 'FM', ANALOG: 'FM', DIGITAL: 'DMR', '': 'FM'})[type] ?? MODES.find((m) => m === type);
             if (!ch.mode) {
-                fail(`Channel Type "${r.cell('Channel Type')}" is not Analogue, Digital, AM, USB, LSB or P25`);
+                fail(`Channel Type "${r.cell('Channel Type')}" is not Analogue, Digital, AM, USB, LSB, P25, NXDN or M17`);
             }
             const rx = r.cell('Rx Frequency');
             if (rx === '') {
@@ -642,6 +643,8 @@ export function importCsv(cp, files, {replace = false, newChannel}) {
             ch.forceDmo = bool(r.cell('Force DMO'));
             const ran = r.cell('RAN');
             ch.ran = ran === '' ? NXDN_RAN_DEFAULT : number(ran, 0, NXDN_RAN_MAX);
+            const can = r.cell('CAN');
+            ch.can = can === '' ? 0 : number(can, 0, M17_CAN_MAX);
             imported.push(ch);
         });
         report.counts.channels = imported.length;

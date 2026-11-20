@@ -397,6 +397,18 @@ const TEXTS = {
     secDmr: ['DMR', 'DMR', 'DMR'],
     secP25: ['P25', 'P25', 'P25'],
     secNxdn: ['NXDN', 'NXDN', 'NXDN'],
+    secM17: ['M17', 'M17', 'M17'],
+    can: ['CAN', 'CAN', 'CAN'],
+    helpCan: [
+        'M17 的信道接入号（0 - 15），发射时放在链路建立帧里；接收不按它过滤，收全部。',
+        'M17 channel access number (0 - 15), sent in the link setup frame; receive: any (not filtered by it).',
+        'Número de acceso al canal M17 (0 - 15), enviado en la trama de enlace; recepción: cualquiera (no se filtra).'],
+    m17Dst: ['目的', 'Destination', 'Destino'],
+    m17DstAll: ['ALL（广播）', 'ALL (broadcast)', 'ALL (difusión)'],
+    helpM17Dst: [
+        'M17 发射的目的地址固定为广播 ALL；源呼号是“常规”里的呼号。',
+        'M17 transmits to ALL (the broadcast); the source is the callsign under General.',
+        'M17 transmite a ALL (difusión); el origen es el indicativo de General.'],
     ran: ['RAN', 'RAN', 'RAN'],
     ranAny: ['全部', 'any', 'cualquiera'],
     helpRan: [
