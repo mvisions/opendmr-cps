@@ -156,6 +156,8 @@ const TEXTS = {
         'En la radio se muestra como (indicativo · nombre · ciudad, estado · país)'],
     idWrite: ['写入 ID 数据库', 'Write the ID database', 'Escribir base de datos de IDs'],
     idWriting: ['正在写入 ID 数据库', 'Writing the ID database', 'Escribiendo base de datos de IDs'],
+    idRetrySlower: ['写入校验失败，降至 {baud} baud 重试当前扇区', 'Write failed. Retrying the sector at {baud} baud',
+        'Error de escritura. Reintentando el sector a {baud} baudios'],
     idWritten: ['ID 数据库已写入', 'ID database written', 'Base de datos de IDs escrita'],
     idFirmwareNote: [
         'OpenDMR 0.4.0 及以后：写我们自己的格式（城市、州/省、国家，全部 ID 都存得下）；0.3.1～0.3.x：写 OpenGD77 格式。连上电台后自动判断。码表文件不包含 ID 数据库。',

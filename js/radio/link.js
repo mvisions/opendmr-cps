@@ -283,6 +283,38 @@ export class RadioLink {
         await this.expect([0x58, 3], [0x58, 3]);
     }
 
+    // A failed write or CRC mismatch invalidates the whole sector transaction.
+    // Start it again at a lower speed, including a fresh prepare and read-back CRC.
+    async writeVerifiedSector(sector, data, onSpeedChange) {
+        const address = sector * SECTOR;
+        const expected = crc32(data);
+        for (;;) {
+            const previous = this.baud;
+            try {
+                await this.writeSector(sector, data);
+                const actual = await this.sectorCrc(address);
+                if (actual !== expected) {
+                    throw new Error(actual === null ? 'no CRC reply' : 'read back different');
+                }
+                return;
+            } catch (e) {
+                if (previous <= BAUD || !this.connected) {
+                    throw new Error(`sector 0x${address.toString(16)}: ${e.message}`, {cause: e});
+                }
+                await this.speedDown();
+                const baud = await this.speedUp(address, false, previous);
+                if (baud === BAUD) {
+                    try {
+                        localStorage.setItem(this.cableKey(false), String(Math.round(UART_CLOCK / BAUD)));
+                    } catch (e) {
+                        // Storage can be unavailable for a local HTML file.
+                    }
+                }
+                onSpeedChange?.(baud);
+            }
+        }
+    }
+
     // The radio's CRC-32 of the window's sector at address ('D' 'K'); null: no answer (a firmware before 0.4.0)
     async sectorCrc(address, attempts = 3) {
         for (let i = 0; i < attempts; i++) {
@@ -306,7 +338,7 @@ export class RadioLink {
     // The fastest speed both ends keep ('D' 'S', confirmed by 'D' 'Y' and four CRCs of probe); 115200 when none.
     // reads: the sector at probe read too and checked with its CRC (a CH340 loses bytes to the PC at 375000 and up,
     // while short replies and writes to the radio still pass)
-    async speedUp(probe, reads = false) {
+    async speedUp(probe, reads = false, below = Infinity) {
         // the speed this kind of cable kept last time (its USB ids): the faster ones that failed not tried again
         const key = this.cableKey(reads);
         let known = null;
@@ -315,7 +347,7 @@ export class RadioLink {
         } catch (e) {
             known = null;
         }
-        for (const divisor of SPEED_DIVISORS.filter((d) => (known === null) || (d >= known))) {
+        for (const divisor of SPEED_DIVISORS.filter((d) => (UART_CLOCK / d < below) && ((known === null) || (d >= known)))) {
             const baud = Math.floor(UART_CLOCK / divisor);
             try {
                 await this.send([0x44, 0x53, divisor >> 8, divisor & 0xFF]);
