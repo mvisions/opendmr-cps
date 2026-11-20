@@ -1188,7 +1188,7 @@ async function writeOddb(db) {
                 status(t('idRetrySlower').replace('{baud}', baud));
             });
             progress(n, all);
-            status(`${t('idWriting')} ${Math.floor(100 * n / all)}%`);
+            status(`${t('idWriting')} ${Math.floor(100 * n / all)}% (${link.baud} baud)`);
         };
         await put({sector: header.sector, data: new Uint8Array(ODDB.SECTOR).fill(0xFF)}, 1); // no database meanwhile
         for (let i = 0; i < changed.length; i++) {
@@ -1205,7 +1205,7 @@ async function writeOldFormat(plan) {
     for (let i = 0; i < db.sectors.length; i++) {
         await link.writeSector(db.sectors[i].sector, db.sectors[i].data);
         progress(i + 1, db.sectors.length);
-        status(`${t('idWriting')} ${Math.floor(100 * (i + 1) / db.sectors.length)}%`);
+        status(`${t('idWriting')} ${Math.floor(100 * (i + 1) / db.sectors.length)}% (${link.baud} baud)`);
     }
     return db.count;
 }
