@@ -2418,8 +2418,55 @@ function viewSatellites(main) {
     let selected = null;
     let preview = null; // an unticked satellite clicked: its details, read only
     let filter = '';
+    let region = 'all';
+    let country = 'all';
     let presetOf = new Map(); // the common satellites by key (draw())
     const mhzOrEmpty = (hz) => (hz ? mhz(hz) : '');
+    const REGIONS = ['all', 'Europe', 'Americas', 'Asia', 'Africa', 'Oceania', 'Worldwide'];
+    const regionLabel = (r) => t(r === 'all' ? 'regionAll' : ('region' + r));
+    const COUNTRY_NAMES = {
+        ES: ['西班牙', 'Spain', 'España'], PT: ['葡萄牙', 'Portugal', 'Portugal'],
+        FR: ['法国', 'France', 'Francia'], DE: ['德国', 'Germany', 'Alemania'],
+        IT: ['意大利', 'Italy', 'Italia'], GB: ['英国', 'United Kingdom', 'Reino Unido'],
+        NL: ['荷兰', 'Netherlands', 'Países Bajos'], BE: ['比利时', 'Belgium', 'Bélgica'],
+        US: ['美国', 'United States', 'Estados Unidos'], CA: ['加拿大', 'Canada', 'Canadá'],
+        MX: ['墨西哥', 'Mexico', 'México'], BR: ['巴西', 'Brazil', 'Brasil'],
+        AR: ['阿根廷', 'Argentina', 'Argentina'], IN: ['印度', 'India', 'India'],
+        JP: ['日本', 'Japan', 'Japón'], AU: ['澳大利亚', 'Australia', 'Australia'],
+    };
+    const COUNTRIES = ['all', ...Object.keys(COUNTRY_NAMES)];
+    const countryLabel = (c) => c === 'all' ? t('countryAll') :
+        (COUNTRY_NAMES[c]?.[language() === 'zh' ? 0 : language() === 'es' ? 2 : 1] ?? c);
+    const COUNTRY_SATS = {
+        ES: ['25544', '27607', '43017', '22825', '59112'],
+        PT: ['25544', '27607', '43017', '22825', '59112'],
+        FR: ['25544', '27607', '43017', '22825', '59112'],
+        DE: ['25544', '27607', '43017', '22825', '59112'],
+        IT: ['25544', '27607', '43017', '22825', '59112'],
+        GB: ['25544', '27607', '43017', '22825', '59112'],
+        NL: ['25544', '27607', '43017', '22825', '59112'],
+        BE: ['25544', '27607', '43017', '22825', '59112'],
+        US: ['25544', '27607', '43017', '22825'],
+        CA: ['25544', '27607', '43017', '22825'],
+        MX: ['25544', '27607', '43017', '22825'],
+        BR: ['25544', '27607', '43678', '40931', '40908'],
+        AR: ['25544', '27607', '43678', '40931', '40908'],
+        IN: ['25544', '27607', '43678', '40931', '40908'],
+        JP: ['25544', '27607', '43678', '40931', '40908'],
+        AU: ['25544', '27607', '43678', '40931', '40908'],
+    };
+    const countryOf = (x) => COUNTRIES.filter((c) => c !== 'all' && (COUNTRY_SATS[c] ?? []).includes(String(x.catalog)));
+    const REGION_SATS = {
+        Europe: ['59112', '25544', '27607', '43017', '22825'],
+        Americas: ['43017', '22825', '25544', '27607'],
+        Asia: ['43678', '40931', '40908', '63217', '63219', '63218', '63213', '63214',
+            '63215', '63238', '63239', '63237', '25544', '27607'],
+        Africa: ['25544', '27607', '43017', '22825'],
+        Oceania: ['25544', '27607', '43678', '40931'],
+        Worldwide: ['25544', '27607', '61781'],
+    };
+    const regionsOf = (x) => Object.keys(REGION_SATS)
+        .filter((r) => (REGION_SATS[r] ?? []).includes(String(x.catalog)));
     // catalog numbers are not stored in the radio: the presets give them by name
     for (const s of codeplug.satellites) {
         s.catalog ||= commonSats().find((p) => p.name === s.name)?.catalog ?? '';
@@ -2544,6 +2591,8 @@ function viewSatellites(main) {
         const f = filter.trim().toLowerCase();
         const match = (x) => !f || x.short.toLowerCase().includes(f) || (x.name ?? '').toLowerCase().includes(f) ||
             String(x.catalog).includes(f);
+        const regionalMatch = (x) => (region === 'all' || regionsOf(x).includes(region)) &&
+            (country === 'all' || countryOf(x).includes(country));
         presetOf = new Map(commonSats().map((p) => [SAT.satKey(p), p]));
         const common = commonSats().map((p) => ({catalog: SAT.satKey(p), short: p.name,
             name: (p.catalog && catalog.get(p.catalog)?.name) || ''}));
@@ -2555,7 +2604,7 @@ function viewSatellites(main) {
             .map((x) => ({catalog: x.catalog, short: shortSatName(x.name, x.catalog), name: x.name}))
             .sort((a, b) => a.short.localeCompare(b.short));
         const group = (title, entries) => {
-            const shown = entries.filter(match);
+            const shown = entries.filter((x) => match(x) && regionalMatch(x));
             return shown.length ? [el('tr', {class: 'group-row'}, el('td', {colspan: 9}, `${title} (${shown.length})`)),
                 ...shown.map(row)] : [];
         };
@@ -2583,9 +2632,12 @@ function viewSatellites(main) {
                                 ...['name', 'fullName', 'downlink', 'uplink', 'CTCSS', 'APRS', 'orbit', 'catalog']
                                     .map((k) => el('th', {}, t(k))))),
                             el('tbody', {},
-                                ...group(t('commonSats'), common),
-                                ...group(t('mySats'), mine),
-                                ...group(t('otherSats'), others))))),
+                                ...REGIONS.slice(1).filter((r) => region === 'all' || r === region).flatMap((r) => [
+                                    ...group(`${country === 'all' ? '' : t('recommendedFor') + ' ' + countryLabel(country) + ' · '}` +
+                                        `${t('commonSats')} · ${regionLabel(r)}`, common.filter((x) => regionsOf(x).includes(r))),
+                                    ...group(`${t('mySats')} · ${regionLabel(r)}`, mine.filter((x) => regionsOf(x).includes(r))),
+                                    ...group(`${t('otherSats')} · ${regionLabel(r)}`, others.filter((x) => regionsOf(x).includes(r))),
+                                ]))))),
                 drawer));
         box.querySelector('.table-wrap').scrollTop = scrolled;
         box.querySelector('.drawer').scrollTop = drawerScrolled;
@@ -2645,6 +2697,14 @@ function viewSatellites(main) {
             filter = search.value;
             draw();
         });
+        const regionSelect = select(REGIONS.map((r) => [r, regionLabel(r)]), region, (v) => {
+            region = v;
+            draw();
+        });
+        const countrySelect = select(COUNTRIES.map((c) => [c, countryLabel(c)]), country, (v) => {
+            country = v;
+            draw();
+        });
         const fileInput = el('input', {type: 'file', accept: '.json,application/json', hidden: true});
         fileInput.addEventListener('change', async () => {
             const file = fileInput.files[0];
@@ -2691,6 +2751,8 @@ function viewSatellites(main) {
             el('div', {class: 'sat-tools'},
                 el('label', {class: 'sat-all'}, all, t('selectAllCommon')),
                 el('label', {class: 'search'}, icon('search'), search),
+                el('label', {class: 'search'}, regionSelect),
+                el('label', {class: 'search'}, countrySelect),
                 el('span', {style: 'flex:1'}),
                 tleCatalog && !tleCatalog.error ? el('span', {class: 'muted small'},
                     `${t('listOf')} ${tleCatalog.time.toLocaleTimeString().slice(0, 5)}`) : null,
