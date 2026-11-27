@@ -1,6 +1,6 @@
 // OpenDMR CPS: the page
 
-import {t, applyTexts, toggleLanguage} from './i18n.js';
+import {t, applyTexts, setLanguage} from './i18n.js';
 import {icon, applyIcons} from './icons.js';
 import {Codeplug, MODES, P25_NAC_ANY, NXDN_RAN_MAX, M17_CAN_MAX, CALL_TYPES, POWER_LEVELS, STEPS_HZ, toneChoices, frequencyValid, LOCKOUTS_MAX,
     TA_TX, APRS_CONFIGS_MAX, newAprsConfig, CustomDataDamaged, aprsSymbolChoices, aprsSymbolOf} from './codeplug/codeplug.js';
@@ -3601,12 +3601,12 @@ function init() {
         selectedChannel = null;
         render();
     });
-    $('btnLang').addEventListener('click', () => {
-        toggleLanguage();
+    document.querySelectorAll('.lang-flag').forEach((button) => button.addEventListener('click', () => {
+        setLanguage(button.dataset.language);
         applyTexts();
         speedTitle();
         render();
-    });
+    }));
     render();
 }
 

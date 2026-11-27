@@ -878,7 +878,8 @@ const TEXTS = {
     flLogCopied: ['记录已复制', 'Log copied', 'Registro copiado'],
 };
 
-let lang = (localStorageGet('lang') ?? (navigator.language.startsWith('zh') ? 'zh' : (navigator.language.startsWith('es') ? 'es' : 'en')));
+let lang = (localStorageGet('lang') ?? (navigator.language.startsWith('zh') ? 'zh' :
+    (navigator.language.startsWith('es') ? 'es' : (navigator.language.startsWith('ru') ? 'ru' : 'en'))));
 
 function localStorageGet(key) {
     try {
@@ -893,6 +894,7 @@ export function t(key) {
     if (!pair) return key;
     if (lang === 'zh') return pair[0];
     if (lang === 'es') return pair[2] ?? pair[1] ?? pair[0];
+    if (lang === 'ru') return pair[3] ?? pair[1] ?? pair[0];
     return pair[1] ?? pair[0];
 }
 
@@ -909,10 +911,25 @@ export function toggleLanguage() {
     }
 }
 
+export function setLanguage(next) {
+    if (!['en', 'es', 'zh', 'ru'].includes(next)) {
+        return;
+    }
+    lang = next;
+    try {
+        localStorage.setItem('lang', lang);
+    } catch (e) {
+        // private window
+    }
+}
+
 // Texts of the elements with data-i18n
 export function applyTexts(root = document) {
-    document.documentElement.lang = (lang === 'zh') ? 'zh-CN' : (lang === 'es' ? 'es' : 'en');
+    document.documentElement.lang = (lang === 'zh') ? 'zh-CN' : (lang === 'es' ? 'es' : (lang === 'ru' ? 'ru' : 'en'));
     root.querySelectorAll('[data-i18n]').forEach((el) => {
         el.textContent = t(el.dataset.i18n);
+    });
+    root.querySelectorAll('.lang-flag').forEach((el) => {
+        el.setAttribute('aria-pressed', el.dataset.language === lang ? 'true' : 'false');
     });
 }
