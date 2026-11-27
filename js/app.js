@@ -3568,6 +3568,19 @@ const flasherView = createFlasher({
 /* ---- start ---- */
 
 function init() {
+    const development = $('chkDevelopment');
+    const developmentState = $('devState');
+    const updateDevelopment = () => {
+        window.opendmrDevelopmentMode = development.checked;
+        developmentState.textContent = development.checked ? 'ON' : 'OFF';
+        localStorage.setItem('opendmr-cps-development-mode', development.checked ? '1' : '0');
+    };
+    development.checked = localStorage.getItem('opendmr-cps-development-mode') === '1';
+    updateDevelopment();
+    development.addEventListener('change', () => {
+        updateDevelopment();
+        render();
+    });
     document.querySelector('.side-foot').textContent = 'OpenDMR CPS · v' + VERSION;
     applyIcons();
     applyTexts();

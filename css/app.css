@@ -109,6 +109,17 @@ button.icon-only { width: 30px; height: 30px; padding: 0; justify-content: cente
     background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff; font-size: 13px; font-weight: 700;
 }
 .brand small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.development-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.development-toggle input { margin: 0; accent-color: var(--accent); }
+.development-toggle #devState { min-width: 24px; font-variant-numeric: tabular-nums; }
 .group { display: flex; gap: 6px; align-items: center; padding-left: 14px; border-left: 1px solid var(--line); }
 .group:first-of-type { border-left: none; }
 

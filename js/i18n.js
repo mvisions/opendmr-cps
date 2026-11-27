@@ -137,6 +137,7 @@ const TEXTS = {
         'Aún no hay ajustes de radio: lea primero la radio (o la radio nunca guardó sus ajustes)'],
     na: ['不适用', 'N/A', 'N/D'],
     satellites: ['卫星', 'Satellites', 'Satélites'],
+    developerMode: ['开发者模式', 'Developer mode', 'Modo desarrollo'],
     dmrIds: ['DMR ID 数据库', 'DMR IDs', 'IDs DMR'],
     idSource: ['① 获取 ID 列表', '1. Get an ID list', '1. Obtener lista de IDs'],
     idIntro: [

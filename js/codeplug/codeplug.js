@@ -65,6 +65,9 @@ export const DCS = [0x023, 0x025, 0x026, 0x031, 0x032, 0x043, 0x047, 0x051, 0x05
 export const BANDS = [[108000000, 136997500], [137000000, 180000000], [200000000, 279975000], [280000000, 520000000]];
 
 export function frequencyValid(hz) {
+    if (typeof window !== 'undefined' && window.opendmrDevelopmentMode) {
+        return Number.isFinite(hz) && hz > 0 && hz < 4000000000;
+    }
     return BANDS.some(([lo, hi]) => (hz >= lo) && (hz <= hi));
 }
 
