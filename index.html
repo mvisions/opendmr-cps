@@ -28,8 +28,19 @@
         <button id="btnRead" data-icon="download" disabled><span data-i18n="readRadio">Read radio</span></button>
         <button id="btnWrite" class="primary" data-icon="upload" disabled><span data-i18n="writeRadio">Write radio</span></button>
     </div>
-    <div class="group">
-        <button id="btnLang" class="ghost" data-icon="globe"><span data-i18n="language">English</span></button>
+    <div class="language-flags" role="group" aria-label="Interface language">
+        <button class="lang-flag" data-language="zh" type="button" aria-label="中文" aria-pressed="false" title="中文">
+            <span class="flag flag-zh" aria-hidden="true"></span>
+        </button>
+        <button class="lang-flag" data-language="ru" type="button" aria-label="Русский" aria-pressed="false" title="Русский">
+            <span class="flag flag-ru" aria-hidden="true"></span>
+        </button>
+        <button class="lang-flag" data-language="es" type="button" aria-label="Español" aria-pressed="false" title="Español">
+            <span class="flag flag-es" aria-hidden="true"></span>
+        </button>
+        <button class="lang-flag" data-language="en" type="button" aria-label="English" aria-pressed="false" title="English">
+            <span class="flag flag-en" aria-hidden="true"></span>
+        </button>
     </div>
     <input type="file" id="fileInput" accept=".opendmr" hidden>
     <input type="file" id="csvInput" accept=".csv,.zip,text/csv" multiple hidden>

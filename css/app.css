@@ -134,6 +134,37 @@ button.icon-only { width: 30px; height: 30px; padding: 0; justify-content: cente
     background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff; font-size: 13px; font-weight: 700;
 }
 .brand small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.language-flags { display: flex; align-items: center; gap: 4px; }
+.lang-flag {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+    border-radius: 7px;
+}
+.lang-flag:hover:not(:disabled) { background: var(--panel-2); border-color: var(--line); }
+.lang-flag[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.flag {
+    display: block;
+    width: 22px;
+    height: 15px;
+    border: 1px solid rgba(0, 0, 0, .18);
+    border-radius: 2px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .12);
+}
+.flag-zh { background: radial-gradient(circle at 27% 28%, #ffd700 0 13%, transparent 14%), #de2910; }
+.flag-ru { background: linear-gradient(#fff 0 33.33%, #2455a4 33.33% 66.66%, #d52b1e 66.66%); }
+.flag-es { background: linear-gradient(#aa151b 0 25%, #f1bf00 25% 75%, #aa151b 75%); }
+.flag-en {
+    background:
+        linear-gradient(90deg, transparent 40%, #fff 40% 60%, transparent 60%),
+        linear-gradient(transparent 35%, #fff 35% 65%, transparent 65%),
+        linear-gradient(90deg, transparent 46%, #cf142b 46% 54%, transparent 54%),
+        linear-gradient(transparent 42%, #cf142b 42% 58%, transparent 58%),
+        #00247d;
+}
 .group {
     display: flex;
     flex: 0 1 auto;
